@@ -83,6 +83,7 @@ var (
 type MySQL struct {
 	db         *sql.DB
 	bulkCnt    int
+	dbTimer    time.Duration
 	sipBulkVal []byte
 	rtcBulkVal []byte
 }
@@ -110,6 +111,7 @@ func (m *MySQL) setup() error {
 	if m.bulkCnt < 1 {
 		m.bulkCnt = 1
 	}
+	m.dbTimer = time.Duration(config.Setting.DBTimer) * time.Second
 
 	m.sipBulkVal = sipQueryVal(m.bulkCnt)
 	m.rtcBulkVal = rtcQueryVal(m.bulkCnt)
@@ -127,9 +129,21 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 		callRows   = make([]interface{}, 0, m.bulkCnt)
 		regRows    = make([]interface{}, 0, m.bulkCnt)
 		logRows    = make([]interface{}, 0, m.bulkCnt)
-		rtcpRows   = make([]interface{}, 0, 200)
-		reportRows = make([]interface{}, 0, 100)
+		rtcpRows   = make([]interface{}, 0, m.bulkCnt)
+		reportRows = make([]interface{}, 0, m.bulkCnt)
+		maxWait    = m.dbTimer
 	)
+
+	timer := time.NewTimer(maxWait)
+	stop := func() {
+		if !timer.Stop() {
+			select {
+			case <-timer.C:
+			default:
+			}
+		}
+	}
+	defer stop()
 
 	addSIPRow := func(r []interface{}) []interface{} {
 		r = append(r, []interface{}{
@@ -241,6 +255,38 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 						reportCnt = 0
 					}
 				}
+			}
+		case <-timer.C:
+			timer.Reset(maxWait)
+			if callCnt > 100 {
+				l := len(callRows)
+				m.bulkInsert(callQuery, sipQueryVal(l/sipValCnt), callRows[:l])
+				callRows = []interface{}{}
+				callCnt = 0
+			}
+			if regCnt > 100 {
+				l := len(regRows)
+				m.bulkInsert(registerQuery, sipQueryVal(l/sipValCnt), regRows[:l])
+				regRows = []interface{}{}
+				regCnt = 0
+			}
+			if rtcpCnt > 10 {
+				l := len(rtcpRows)
+				m.bulkInsert(rtcpQuery, rtcQueryVal(l/rtcValCnt), rtcpRows[:l])
+				rtcpRows = []interface{}{}
+				rtcpCnt = 0
+			}
+			if reportCnt > 10 {
+				l := len(reportRows)
+				m.bulkInsert(reportQuery, rtcQueryVal(l/rtcValCnt), reportRows[:l])
+				reportRows = []interface{}{}
+				reportCnt = 0
+			}
+			if logCnt > 100 {
+				l := len(logRows)
+				m.bulkInsert(logQuery, rtcQueryVal(l/rtcValCnt), logRows[:l])
+				logRows = []interface{}{}
+				logCnt = 0
 			}
 		}
 	}
