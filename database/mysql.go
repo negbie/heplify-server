@@ -13,10 +13,8 @@ import (
 var (
 	callQuery     = []byte("INSERT INTO sip_capture_call_")
 	registerQuery = []byte("INSERT INTO sip_capture_registration_")
-	restQuery     = []byte("INSERT INTO sip_capture_rest_")
 	rtcpQuery     = []byte("INSERT INTO rtcp_capture_all_")
 	reportQuery   = []byte("INSERT INTO report_capture_all_")
-	dnsQuery      = []byte("INSERT INTO dns_capture_all_")
 	logQuery      = []byte("INSERT INTO logs_capture_all_")
 
 	sipVal = []byte(`(
@@ -85,7 +83,6 @@ var (
 type MySQL struct {
 	db         *sql.DB
 	bulkCnt    int
-	dbTimer    time.Duration
 	sipBulkVal []byte
 	rtcBulkVal []byte
 }
@@ -113,7 +110,6 @@ func (m *MySQL) setup() error {
 	if m.bulkCnt < 1 {
 		m.bulkCnt = 1
 	}
-	m.dbTimer = time.Duration(config.Setting.DBTimer) * time.Second
 
 	m.sipBulkVal = sipQueryVal(m.bulkCnt)
 	m.rtcBulkVal = rtcQueryVal(m.bulkCnt)
@@ -124,30 +120,16 @@ func (m *MySQL) setup() error {
 
 func (m *MySQL) insert(hCh chan *decoder.HEP) {
 	var (
-		callCnt, regCnt, restCnt, dnsCnt, logCnt, rtcpCnt, reportCnt int
+		callCnt, regCnt, logCnt, rtcpCnt, reportCnt int
 
 		pkt        *decoder.HEP
 		ok         bool
 		callRows   = make([]interface{}, 0, m.bulkCnt)
 		regRows    = make([]interface{}, 0, m.bulkCnt)
-		restRows   = make([]interface{}, 0, m.bulkCnt)
-		dnsRows    = make([]interface{}, 0, m.bulkCnt)
 		logRows    = make([]interface{}, 0, m.bulkCnt)
-		rtcpRows   = make([]interface{}, 0, m.bulkCnt)
-		reportRows = make([]interface{}, 0, m.bulkCnt)
-		maxWait    = m.dbTimer
+		rtcpRows   = make([]interface{}, 0, 200)
+		reportRows = make([]interface{}, 0, 100)
 	)
-
-	timer := time.NewTimer(maxWait)
-	stop := func() {
-		if !timer.Stop() {
-			select {
-			case <-timer.C:
-			default:
-			}
-		}
-	}
-	defer stop()
 
 	addSIPRow := func(r []interface{}) []interface{} {
 		r = append(r, []interface{}{
@@ -215,14 +197,6 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 
 			if pkt.ProtoType == 1 && pkt.Payload != "" && pkt.SIP != nil {
 				switch pkt.SIP.CseqMethod {
-				case "INVITE", "UPDATE", "BYE", "ACK", "PRACK", "REFER", "CANCEL", "INFO":
-					callRows = addSIPRow(callRows)
-					callCnt++
-					if callCnt == m.bulkCnt {
-						m.bulkInsert(callQuery, m.sipBulkVal, callRows)
-						callRows = []interface{}{}
-						callCnt = 0
-					}
 				case "REGISTER":
 					regRows = addSIPRow(regRows)
 					regCnt++
@@ -232,14 +206,13 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 						regCnt = 0
 					}
 				default:
-					restRows = addSIPRow(restRows)
-					restCnt++
-					if restCnt == m.bulkCnt {
-						m.bulkInsert(restQuery, m.sipBulkVal, restRows)
-						restRows = []interface{}{}
-						restCnt = 0
+					callRows = addSIPRow(callRows)
+					callCnt++
+					if callCnt == m.bulkCnt {
+						m.bulkInsert(callQuery, m.sipBulkVal, callRows)
+						callRows = []interface{}{}
+						callCnt = 0
 					}
-
 				}
 			} else if pkt.ProtoType > 1 && pkt.Payload != "" && pkt.CID != "" {
 				switch pkt.ProtoType {
@@ -251,14 +224,6 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 						rtcpRows = []interface{}{}
 						rtcpCnt = 0
 					}
-				case 53:
-					dnsRows = addRTCRow(dnsRows)
-					dnsCnt++
-					if dnsCnt == m.bulkCnt {
-						m.bulkInsert(dnsQuery, m.rtcBulkVal, dnsRows)
-						dnsRows = []interface{}{}
-						dnsCnt = 0
-					}
 				case 100:
 					logRows = addRTCRow(logRows)
 					logCnt++
@@ -268,8 +233,6 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 						logCnt = 0
 					}
 				default:
-					stop()
-					timer.Reset(1e9)
 					reportRows = addRTCRow(reportRows)
 					reportCnt++
 					if reportCnt == m.bulkCnt {
@@ -278,50 +241,6 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 						reportCnt = 0
 					}
 				}
-			}
-		case <-timer.C:
-			timer.Reset(maxWait)
-			if callCnt > 0 {
-				l := len(callRows)
-				m.bulkInsert(callQuery, sipQueryVal(l/sipValCnt), callRows[:l])
-				callRows = []interface{}{}
-				callCnt = 0
-			}
-			if regCnt > 0 {
-				l := len(regRows)
-				m.bulkInsert(registerQuery, sipQueryVal(l/sipValCnt), regRows[:l])
-				regRows = []interface{}{}
-				regCnt = 0
-			}
-			if restCnt > 0 {
-				l := len(restRows)
-				m.bulkInsert(restQuery, sipQueryVal(l/sipValCnt), restRows[:l])
-				restRows = []interface{}{}
-				restCnt = 0
-			}
-			if rtcpCnt > 0 {
-				l := len(rtcpRows)
-				m.bulkInsert(rtcpQuery, rtcQueryVal(l/rtcValCnt), rtcpRows[:l])
-				rtcpRows = []interface{}{}
-				rtcpCnt = 0
-			}
-			if reportCnt > 0 {
-				l := len(reportRows)
-				m.bulkInsert(reportQuery, rtcQueryVal(l/rtcValCnt), reportRows[:l])
-				reportRows = []interface{}{}
-				reportCnt = 0
-			}
-			if dnsCnt > 0 {
-				l := len(dnsRows)
-				m.bulkInsert(dnsQuery, rtcQueryVal(l/rtcValCnt), dnsRows[:l])
-				dnsRows = []interface{}{}
-				dnsCnt = 0
-			}
-			if logCnt > 0 {
-				l := len(logRows)
-				m.bulkInsert(logQuery, rtcQueryVal(l/rtcValCnt), logRows[:l])
-				logRows = []interface{}{}
-				logCnt = 0
 			}
 		}
 	}

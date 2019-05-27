@@ -192,7 +192,6 @@ func (r *Rotator) DropTables() (err error) {
 		r.dbExecFile(db, droprtcpmaria, replaceDay(r.dropDays*-1), 0, 0)
 		r.dbExecFile(db, dropcallmaria, replaceDay(r.dropDaysCall*-1), 0, 0)
 		r.dbExecFile(db, dropregistermaria, replaceDay(r.dropDaysRegister*-1), 0, 0)
-		r.dbExecFile(db, dropdefaultmaria, replaceDay(r.dropDaysDefault*-1), 0, 0)
 	} else if r.driver == "postgres" {
 		r.dbExecFileLoop(db, droplogpg, replaceDay(r.dropDays*-1), r.dropDays, r.partLog)
 		r.dbExecFileLoop(db, dropisuppg, replaceDay(r.dropDays*-1), r.dropDays, r.partIsup)
