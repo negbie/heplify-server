@@ -105,7 +105,8 @@ func (m *MySQL) setup() error {
 	}
 
 	m.db.SetMaxOpenConns(config.Setting.DBWorker * 4)
-	m.db.SetMaxIdleConns(config.Setting.DBWorker)
+	m.db.SetMaxIdleConns(config.Setting.DBWorker * 2)
+	m.db.SetConnMaxLifetime(time.Hour)
 
 	m.bulkCnt = config.Setting.DBBulk
 	if m.bulkCnt < 1 {
@@ -247,6 +248,8 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 						logCnt = 0
 					}
 				default:
+					stop()
+					timer.Reset(1e9)
 					reportRows = addRTCRow(reportRows)
 					reportCnt++
 					if reportCnt == m.bulkCnt {
@@ -258,31 +261,31 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 			}
 		case <-timer.C:
 			timer.Reset(maxWait)
-			if callCnt > 100 {
+			if callCnt > 0 {
 				l := len(callRows)
 				m.bulkInsert(callQuery, sipQueryVal(l/sipValCnt), callRows[:l])
 				callRows = []interface{}{}
 				callCnt = 0
 			}
-			if regCnt > 100 {
+			if regCnt > 0 {
 				l := len(regRows)
 				m.bulkInsert(registerQuery, sipQueryVal(l/sipValCnt), regRows[:l])
 				regRows = []interface{}{}
 				regCnt = 0
 			}
-			if rtcpCnt > 10 {
+			if rtcpCnt > 0 {
 				l := len(rtcpRows)
 				m.bulkInsert(rtcpQuery, rtcQueryVal(l/rtcValCnt), rtcpRows[:l])
 				rtcpRows = []interface{}{}
 				rtcpCnt = 0
 			}
-			if reportCnt > 10 {
+			if reportCnt > 0 {
 				l := len(reportRows)
 				m.bulkInsert(reportQuery, rtcQueryVal(l/rtcValCnt), reportRows[:l])
 				reportRows = []interface{}{}
 				reportCnt = 0
 			}
-			if logCnt > 100 {
+			if logCnt > 0 {
 				l := len(logRows)
 				m.bulkInsert(logQuery, rtcQueryVal(l/rtcValCnt), logRows[:l])
 				logRows = []interface{}{}
