@@ -65,9 +65,9 @@ var tblconfmaria = []string{
 		UNIQUE KEY id (id),
 		UNIQUE KEY host_2 (ip,port,capture_id),
 		KEY host (ip)
-	  ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
+	  ) ENGINE=RocksDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
-	"CREATE TABLE IF NOT EXISTS `group` (gid int(10) NOT NULL DEFAULT 0,name varchar(100) NOT NULL DEFAULT '',UNIQUE KEY gid (gid)) ENGINE=InnoDB DEFAULT CHARSET=latin1;",
+	"CREATE TABLE IF NOT EXISTS `group` (gid int(10) NOT NULL DEFAULT 0,name varchar(100) NOT NULL DEFAULT '',UNIQUE KEY gid (gid)) ENGINE=RocksDB DEFAULT CHARSET=latin1;",
 
 	`CREATE TABLE IF NOT EXISTS link_share (
 		id int(10) NOT NULL AUTO_INCREMENT,
@@ -77,7 +77,7 @@ var tblconfmaria = []string{
 		expire datetime NOT NULL DEFAULT '2032-12-31 00:00:00',
 		active tinyint(1) NOT NULL DEFAULT '1',
 		PRIMARY KEY (id)
-	  ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;`,
+	  ) ENGINE=RocksDB  DEFAULT CHARSET=latin1;`,
 
 	`CREATE TABLE IF NOT EXISTS node (
 		id int(10) NOT NULL AUTO_INCREMENT,
@@ -93,7 +93,7 @@ var tblconfmaria = []string{
 		UNIQUE KEY id (id),
 		UNIQUE KEY host_2 (host),
 		KEY host (host)
-	  ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
+	  ) ENGINE=RocksDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
 	`CREATE TABLE IF NOT EXISTS setting (
 		id int(10) NOT NULL AUTO_INCREMENT,
@@ -108,7 +108,7 @@ var tblconfmaria = []string{
 		UNIQUE KEY uid_2 (uid,param_name),
 		KEY param_name (param_name),
 		KEY uid (uid)
-	  ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;`,
+	  ) ENGINE=RocksDB  DEFAULT CHARSET=latin1;`,
 
 	`CREATE TABLE IF NOT EXISTS user (
 		uid int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -126,7 +126,7 @@ var tblconfmaria = []string{
 		PRIMARY KEY (uid),
 		UNIQUE KEY login (username),
 		UNIQUE KEY username (username)
-	  ) ENGINE=InnoDB  DEFAULT CHARSET=latin1;`,
+	  ) ENGINE=RocksDB  DEFAULT CHARSET=latin1;`,
 
 	`CREATE TABLE IF NOT EXISTS user_menu (
 		id varchar(125) NOT NULL DEFAULT '',
@@ -136,7 +136,7 @@ var tblconfmaria = []string{
 		weight int(10) NOT NULL DEFAULT '10',
 		active int(1) NOT NULL DEFAULT '1',
 		UNIQUE KEY id (id)
-	  ) ENGINE=InnoDB DEFAULT CHARSET=latin1;`,
+	  ) ENGINE=RocksDB DEFAULT CHARSET=latin1;`,
 
 	`CREATE TABLE IF NOT EXISTS api_auth_key (
 		id int(10) NOT NULL AUTO_INCREMENT,
@@ -150,7 +150,7 @@ var tblconfmaria = []string{
 		enable int(1) NOT NULL DEFAULT '1',
 		PRIMARY KEY (id),
 		UNIQUE KEY authkey (authkey)
-	  ) ENGINE=InnoDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;`,
+	  ) ENGINE=RocksDB DEFAULT CHARSET=latin1 AUTO_INCREMENT=1;`,
 }
 
 var tbldatalogmaria = []string{
@@ -171,7 +171,7 @@ var tbldatalogmaria = []string{
 		PRIMARY KEY (id,date),
 		KEY date (date),
 		KEY correlationid (correlation_id(255))
-	  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8
+	  ) ENGINE=RocksDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8
 	  PARTITION BY RANGE ( UNIX_TIMESTAMP(date) ) (
 		  PARTITION {{date}}_{{minTime}} VALUES LESS THAN ( UNIX_TIMESTAMP('{{endTime}}') )
 	  );`,
@@ -195,7 +195,7 @@ var tbldataqosmaria = []string{
 		PRIMARY KEY (id,date),
 		KEY date (date),
 		KEY correlationid (correlation_id(255))
-	  ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8
+	  ) ENGINE=RocksDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8
 	  PARTITION BY RANGE ( UNIX_TIMESTAMP(date) ) (
 		  PARTITION {{date}}_{{minTime}} VALUES LESS THAN ( UNIX_TIMESTAMP('{{endTime}}') )
 	  );`,
@@ -217,7 +217,7 @@ var tbldataqosmaria = []string{
 		PRIMARY KEY (id,date),
 		KEY date (date),
 		KEY correlationid (correlation_id(255))
-	  ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8
+	  ) ENGINE=RocksDB  DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8
 	  PARTITION BY RANGE ( UNIX_TIMESTAMP(date) ) (
 		  PARTITION {{date}}_{{minTime}} VALUES LESS THAN ( UNIX_TIMESTAMP('{{endTime}}') )
 	  );`,
@@ -287,7 +287,7 @@ var tbldatasipmaria = []string{
 		KEY source_ip (source_ip),
 		KEY destination_ip (destination_ip),
 		KEY user_agent (user_agent)
-	  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8
+	  ) ENGINE=RocksDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8
 	  PARTITION BY RANGE ( UNIX_TIMESTAMP(date) ) (
 		  PARTITION {{date}}_{{minTime}} VALUES LESS THAN ( UNIX_TIMESTAMP('{{endTime}}') )
 	  );`,
@@ -350,7 +350,7 @@ var tbldatasipmaria = []string{
 		KEY source_ip (source_ip),
 		KEY destination_ip (destination_ip),
 		KEY user_agent (user_agent)
-	  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8
+	  ) ENGINE=RocksDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8
 	  PARTITION BY RANGE ( UNIX_TIMESTAMP(date) ) (
 		  PARTITION {{date}}_{{minTime}} VALUES LESS THAN ( UNIX_TIMESTAMP('{{endTime}}') )
 	  );`,
