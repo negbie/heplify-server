@@ -8,6 +8,7 @@ import (
 	"github.com/negbie/logp"
 	"github.com/sipcapture/heplify-server/config"
 	"github.com/sipcapture/heplify-server/decoder"
+	"github.com/sipcapture/heplify-server/sipparser"
 )
 
 var (
@@ -147,6 +148,10 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 	defer stop()
 
 	addSIPRow := func(r []interface{}) []interface{} {
+		var xcid string
+		if len(pkt.SIP.Body) > 10 {
+			xcid = sipparser.GetSIPHeaderVal("m=", pkt.SIP.Body)
+		}
 		r = append(r, []interface{}{
 			pkt.Timestamp.Format("2006-01-02 15:04:05.999999"),
 			pkt.Timestamp.UnixNano() / 1000,
@@ -164,8 +169,8 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 			short(pkt.SIP.PaiUser, 100),
 			short(pkt.SIP.ContactUser, 120),
 			short(pkt.SIP.AuthUser, 120),
-			short(pkt.SIP.CallID, 120),
-			short(pkt.SIP.XCallID, 120),
+			pkt.CID,
+			short(xcid, 120),
 			short(pkt.SIP.ViaOne, 256),
 			short(pkt.SIP.ViaOneBranch, 80),
 			short(pkt.SIP.CseqVal, 25),
@@ -185,7 +190,7 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 			short(pkt.SIP.RTPStatVal, 256),
 			pkt.ProtoType,
 			pkt.NodeID,
-			short(pkt.CID, 120),
+			pkt.CID,
 			short(pkt.Payload, 3000)}...)
 		return r
 	}
