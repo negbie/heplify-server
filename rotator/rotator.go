@@ -94,8 +94,8 @@ func (r *Rotator) CreateDatabases() (err error) {
 				break
 			}
 			if r.driver == "mysql" {
-				r.dbExec(db, "CREATE DATABASE IF NOT EXISTS "+r.dataDB+` DEFAULT CHARACTER SET = 'utf8mb4' DEFAULT COLLATE = 'utf8mb4_unicode_ci';`)
-				r.dbExec(db, "CREATE DATABASE IF NOT EXISTS "+r.confDB+` DEFAULT CHARACTER SET = 'utf8mb4' DEFAULT COLLATE = 'utf8mb4_unicode_ci';`)
+				r.dbExec(db, "CREATE DATABASE IF NOT EXISTS "+r.dataDB+` DEFAULT CHARACTER SET = 'utf8' DEFAULT COLLATE = 'utf8_bin';`)
+				r.dbExec(db, "CREATE DATABASE IF NOT EXISTS "+r.confDB+` DEFAULT CHARACTER SET = 'utf8' DEFAULT COLLATE = 'utf8_bin';`)
 				r.dbExec(db, `CREATE USER IF NOT EXISTS 'homer_user'@'%' IDENTIFIED BY 'homer_password';`)
 				r.dbExec(db, "GRANT ALL ON "+r.dataDB+`.* TO 'homer_user'@'%';`)
 				r.dbExec(db, "GRANT ALL ON "+r.confDB+`.* TO 'homer_user'@'%';`)
