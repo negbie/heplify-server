@@ -67,7 +67,7 @@ var tblconfmaria = []string{
 		KEY host (ip)
 	  ) ENGINE=RocksDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;`,
 
-	"CREATE TABLE IF NOT EXISTS `group` (gid int(10) NOT NULL DEFAULT 0,name varchar(100) NOT NULL DEFAULT '',UNIQUE KEY gid (gid)) ENGINE=RocksDB DEFAULT CHARSET=latin1;",
+	"CREATE TABLE IF NOT EXISTS `group` (gid int(10) NOT NULL DEFAULT 0,name varchar(100) NOT NULL DEFAULT '',UNIQUE KEY gid (gid)) ENGINE=RocksDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;",
 
 	`CREATE TABLE IF NOT EXISTS link_share (
 		id int(10) NOT NULL AUTO_INCREMENT,
