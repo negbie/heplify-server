@@ -257,7 +257,7 @@ func (h *HEPInput) hepWorker() {
 
 			if h.useLK {
 				for _, v := range h.lokiTF {
-					if hepPkt.ProtoType == uint32(v) {
+					if hepPkt.ProtoType == uint32(v) || hepPkt.NodeID == 3333 {
 						select {
 						case h.lokiCh <- hepPkt:
 						default:
