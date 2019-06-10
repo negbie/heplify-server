@@ -105,10 +105,6 @@ func (m *MySQL) setup() error {
 		return err
 	}
 
-	m.db.SetMaxOpenConns(config.Setting.DBWorker * 4)
-	m.db.SetMaxIdleConns(config.Setting.DBWorker * 2)
-	m.db.SetConnMaxLifetime(time.Hour)
-
 	m.bulkCnt = config.Setting.DBBulk
 	if m.bulkCnt < 1 {
 		m.bulkCnt = 1
