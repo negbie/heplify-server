@@ -171,7 +171,7 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 			short(pkt.SIP.ViaOneBranch, 80),
 			short(pkt.SIP.CseqVal, 25),
 			short(pkt.SIP.DiversionVal, 256),
-			pkt.SIP.ReasonVal,
+			short(pkt.SIP.ReasonVal, 200),
 			short(pkt.SIP.ContentType, 256),
 			short(pkt.SIP.AuthVal, 256),
 			short(pkt.SIP.UserAgent, 256),
