@@ -98,14 +98,6 @@ func (l *Loki) start(hCh chan *decoder.HEP) {
 
 			pktMeta.Reset()
 			pktMeta.WriteString(pkt.Payload)
-			pktMeta.WriteString(" src_ip=")
-			pktMeta.WriteString(pkt.SrcIP)
-			pktMeta.WriteString(" dst_ip=")
-			pktMeta.WriteString(pkt.DstIP)
-			if pkt.ProtoType < 110 {
-				pktMeta.WriteString(" id=")
-				pktMeta.WriteString(pkt.CID)
-			}
 
 			tsNano := curPktTime.UnixNano()
 			ts := &timestamp.Timestamp{
@@ -114,27 +106,20 @@ func (l *Loki) start(hCh chan *decoder.HEP) {
 			}
 
 			l.entry = entry{model.LabelSet{}, &logproto.Entry{Timestamp: ts}}
+			l.entry.labels["job"] = jobName
 
 			switch {
 			case pkt.SIP != nil && pkt.ProtoType == 1:
+				l.entry.labels["hostname"] = model.LabelValue(pkt.NodeName)
 				l.entry.labels["method"] = model.LabelValue(pkt.SIP.CseqMethod)
 				l.entry.labels["response"] = model.LabelValue(pkt.SIP.FirstMethod)
 			case pkt.ProtoType == 100:
-				protocol := "udp"
-				if strings.Contains(pkt.Payload, "Fax") || strings.Contains(pkt.Payload, "T38") {
-					protocol = "fax"
-				} else if strings.Contains(pkt.Payload, "sip") {
-					protocol = "sip"
+				if pkt.NodeName == "3333" {
+					l.entry.labels["job"] = model.LabelValue("mgcf")
+					l.entry.labels["static_tag"] = model.LabelValue("cdr")
 				}
-				l.entry.labels["protocol"] = model.LabelValue(protocol)
-			case pkt.ProtoType == 112:
-				l.entry.labels["level"] = model.LabelValue(pkt.CID)
-				l.entry.labels["host"] = model.LabelValue(pkt.HostTag)
 			}
 
-			l.entry.labels["job"] = jobName
-			l.entry.labels["node"] = model.LabelValue(pkt.NodeName)
-			l.entry.labels["type"] = model.LabelValue(pkt.ProtoString)
 			l.entry.Entry.Line = pktMeta.String()
 
 			if batchSize+len(l.entry.Line) > l.BatchSize {
