@@ -19,10 +19,6 @@ var (
 		Name: "heplify_method_response",
 		Help: "SIP method and response counter"},
 		[]string{"target_name", "direction", "node_id", "response", "method"})
-	reasonCause = promauto.NewCounterVec(prometheus.CounterOpts{
-		Name: "heplify_reason_isup_total",
-		Help: "ISUP Q.850 cause from reason header"},
-		[]string{"target_name", "cause", "method"})
 	srd = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "heplify_kpi_srd",
 		Help: "SIP Session Request Delay KPI"},
@@ -136,24 +132,6 @@ var (
 		Help: "VQ-RTCPXR MOS conversation voice quality"},
 		[]string{"node_id"})
 
-	// RTPAgent Metrics
-	rtpagentDelta = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "heplify_rtpagent_delta",
-		Help: "RTPAgent delta"},
-		[]string{"node_id"})
-	rtpagentJitter = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "heplify_rtpagent_jitter",
-		Help: "RTPAgent jitter"},
-		[]string{"node_id"})
-	rtpagentMOS = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "heplify_rtpagent_mos",
-		Help: "RTPAgent mos"},
-		[]string{"node_id"})
-	rtpagentPacketsLost = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "heplify_rtpagent_packets_lost",
-		Help: "RTPAgent packets lost"},
-		[]string{"node_id"})
-
 	// Horaclifix Metrics
 	horaclifixRtpMOS = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "horaclifix_rtp_mos",
@@ -204,25 +182,7 @@ var (
 		Help: "Incoming RTCP maxLat"},
 		[]string{"sbc_name", "direction", "inc_realm", "out_realm"})
 
-	/* 	// Janus Metrics
-	   	janusRtt                 = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_rtt"})
-	   	janusLost                = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_lost"})
-	   	janusLostByRemote        = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_lost_by_remote"})
-	   	janusJitterLocal         = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_jitter_local"})
-	   	janusJitterRemote        = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_jitter_remote"})
-	   	janusInLinkQuality       = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_in_link_quality"})
-	   	janusInMediaLinkQuality  = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_in_media_link_quality"})
-	   	janusOutLinkQuality      = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_out_link_quality"})
-	   	janusOutMediaLinkQuality = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_out_media_link_quality"})
-	   	janusPacketsReceived     = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_packets_received"})
-	   	janusPacketsSent         = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_packets_sent"})
-	   	janusBytesReceived       = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_bytes_received"})
-	   	janusBytesSent           = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_bytes_sent"})
-	   	janusNacksReceived       = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_nacks_received"})
-	   	janusNacksSent           = promauto.NewGauge(prometheus.GaugeOpts{Name: "janus_nacks_sent"})
-	*/
 	// JSON Paths
-
 	rtcpPaths = [][]string{
 		[]string{"report_blocks", "[0]", "fraction_lost"},
 		[]string{"report_blocks", "[0]", "packets_lost"},
@@ -237,12 +197,7 @@ var (
 		[]string{"report_blocks_xr", "round_trip_delay"},
 		[]string{"report_blocks_xr", "end_system_delay"},
 	}
-	rtpPaths = [][]string{
-		[]string{"DELTA"},
-		[]string{"JITTER"},
-		[]string{"MOS"},
-		[]string{"PACKET_LOSS"},
-	}
+
 	horaclifixPaths = [][]string{
 		[]string{"NAME"},
 		[]string{"INC_REALM"},
@@ -271,22 +226,5 @@ var (
 		[]string{"OUT_RTCP_MAX_JITTER"},
 		[]string{"OUT_RTCP_AVG_LAT"},
 		[]string{"OUT_RTCP_MAX_LAT"},
-	}
-	janusPaths = [][]string{
-		[]string{"rtt"},
-		[]string{"lost"},
-		[]string{"lost-by-remote"},
-		[]string{"jitter-local"},
-		[]string{"jitter-remote"},
-		[]string{"in-link-quality"},
-		[]string{"in-media-link-quality"},
-		[]string{"out-link-quality"},
-		[]string{"out-media-link-quality"},
-		[]string{"packets-received"},
-		[]string{"packets-sent"},
-		[]string{"bytes-received"},
-		[]string{"bytes-sent"},
-		[]string{"nacks-received"},
-		[]string{"nacks-sent"},
 	}
 )

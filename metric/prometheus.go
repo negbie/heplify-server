@@ -68,10 +68,6 @@ func (p *Prometheus) expose(hCh chan *decoder.HEP) {
 				st, ok = p.TargetMap[pkt.SrcIP]
 				if ok {
 					methodResponses.WithLabelValues(st, "src", "", pkt.SIP.FirstMethod, pkt.SIP.CseqMethod).Inc()
-
-					if pkt.SIP.ReasonVal != "" && strings.Contains(pkt.SIP.ReasonVal, "850") {
-						reasonCause.WithLabelValues(st, extractXR("cause=", pkt.SIP.ReasonVal), pkt.SIP.FirstMethod).Inc()
-					}
 				}
 				dt, ok = p.TargetMap[pkt.DstIP]
 				if ok {
@@ -128,9 +124,6 @@ func (p *Prometheus) expose(hCh chan *decoder.HEP) {
 				p.cache.Set(k, nil)
 				methodResponses.WithLabelValues("", "", pkt.NodeName, pkt.SIP.FirstMethod, pkt.SIP.CseqMethod).Inc()
 
-				if pkt.SIP.ReasonVal != "" && strings.Contains(pkt.SIP.ReasonVal, "850") {
-					reasonCause.WithLabelValues(st, extractXR("cause=", pkt.SIP.ReasonVal), pkt.SIP.FirstMethod).Inc()
-				}
 			}
 
 			if pkt.SIP.RTPStatVal != "" {
@@ -139,8 +132,6 @@ func (p *Prometheus) expose(hCh chan *decoder.HEP) {
 
 		} else if pkt.ProtoType == 5 {
 			p.dissectRTCPStats(pkt.NodeName, []byte(pkt.Payload))
-		} else if pkt.ProtoType == 34 {
-			p.dissectRTPStats(pkt.NodeName, []byte(pkt.Payload))
 		} else if pkt.ProtoType == 35 {
 			p.dissectRTCPXRStats(pkt.NodeName, pkt.Payload)
 		} else if pkt.ProtoType == 38 {
