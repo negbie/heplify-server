@@ -8,7 +8,6 @@ type HeplifyServer struct {
 	HEPAddr            string   `default:"0.0.0.0:9060"`
 	HEPTCPAddr         string   `default:""`
 	HEPTLSAddr         string   `default:"0.0.0.0:9060"`
-	CGRAddr            string   `default:""`
 	ESAddr             string   `default:""`
 	ESDiscovery        bool     `default:"true"`
 	ESUser             string   `default:""`
