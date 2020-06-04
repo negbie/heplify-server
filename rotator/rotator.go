@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/negbie/logp"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 	"github.com/sipcapture/heplify-server/config"
 	"github.com/sipcapture/heplify-server/database"
 )
@@ -264,24 +264,32 @@ func fileLoop(db *sql.DB, query string, d, p int) {
 
 func (r *Rotator) Rotate() {
 	r.createTables()
-	r.createJob.AddFunc("0 30 03 * * *", func() {
+	_, err := r.createJob.AddFunc("30 03 * * *", func() {
+		logp.Info("run create job\n")
 		if err := r.CreateDataTables(1); err != nil {
 			logp.Err("%v", err)
 		}
 		if err := r.CreateDataTables(2); err != nil {
 			logp.Err("%v", err)
 		}
-		logp.Info("finished rotate job next will run at %v\n", time.Now().Add(time.Hour*24+1))
+		logp.Info("finished create job, next will run at %v\n", time.Now().Add(time.Hour*24+1))
 	})
+	if err != nil {
+		logp.Err("%v", err)
+	}
 	r.createJob.Start()
 
 	if r.dropDays > 0 {
-		r.dropJob.AddFunc("0 45 03 * * *", func() {
+		_, err := r.dropJob.AddFunc("45 03 * * *", func() {
+			logp.Info("run drop job\n")
 			if err := r.DropTables(); err != nil {
 				logp.Err("%v", err)
 			}
-			logp.Info("finished drop job next will run at %v\n", time.Now().Add(time.Hour*24+1))
+			logp.Info("finished drop job, next will run at %v\n", time.Now().Add(time.Hour*24+1))
 		})
+		if err != nil {
+			logp.Err("%v", err)
+		}
 		r.dropJob.Start()
 	}
 }
