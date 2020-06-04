@@ -70,7 +70,7 @@ func (m *Mock) insert(hCh chan *decoder.HEP) {
 			pkt.ProtoType,
 			pkt.NodeID,
 			short(pkt.CID, 120),
-			short(pkt.Payload, 3000)}...)
+			short(pkt.Payload, 6000)}...)
 		return r
 	}
 

@@ -270,7 +270,7 @@ var tbldatasipmaria = []string{
 		rtp_stat varchar(256) NOT NULL DEFAULT '',
 		type int(2) NOT NULL DEFAULT 0,
 		node varchar(125) NOT NULL DEFAULT '',
-		msg varchar(3000) NOT NULL DEFAULT '',
+		msg varchar(6000) NOT NULL DEFAULT '',
 		PRIMARY KEY (id,date),
 		KEY date (date),
 		KEY callid (callid),

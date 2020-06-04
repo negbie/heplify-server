@@ -187,7 +187,7 @@ func (m *MySQL) insert(hCh chan *decoder.HEP) {
 			pkt.ProtoType,
 			pkt.NodeID,
 			pkt.CID,
-			short(pkt.Payload, 3000)}...)
+			short(pkt.Payload, 6000)}...)
 		return r
 	}
 
